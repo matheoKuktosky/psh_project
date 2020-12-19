@@ -1,38 +1,35 @@
-import React, { Component } from 'react';
-import Axios from 'axios';
+import React, { Component, useState } from 'react';
 
 class App extends Component{
   constructor(){
     super();
     this.state = {
-      players: []
+      stats: [],
+      nickname: '',
+      pImage: '',
+      timestamp: '',
+      score: 0
     };
-    this.componentDidMount = this.componentDidMount.bind(this);        
+    this.componentDidMount = this.componentDidMount.bind(this);
+    this.submitStats = this.submitStats.bind(this);
+    this.randomNumber = this.randomNumber.bind(this);  
   }
-
-  submitStats(nickname, pImage, timestamp, score){
-    Axios.post("http://localhost:3001/api/insert", 
-    {
-      nickname: nickname,
-      pImage: pImage,
-      timestamp: timestamp,
-      score: score
-    }).then(()=>{
-      alert("Successful insert!");
-    })
+  
+  submitStats(){      
+  
   };
+  
   randomNumber(max, min){
     return Math.floor(Math.random() * (max + 1 - min)) + min; 
   }
-  
-  componentDidMount(){
+  componentDidMount(){    
     fetch(`https://randomuser.me/api/?results=${this.randomNumber(10, 0)}`).then(response =>{
       if(response.ok) return response.json();
       throw new Error('Request failed.');
     })
     .then(data =>{
-      this.setState({players: data.results});
-      this.state.players.map((p, i) => {
+      this.setState({stats: data.results});
+      this.state.stats.map((p, i) => {
         let currentdate = new Date();
         let timestamp = currentdate.getDate() + "-"
         + (currentdate.getMonth()+1)  + "-" 
@@ -40,8 +37,14 @@ class App extends Component{
         + (currentdate.getHours() < 10? "0":"") + currentdate.getHours() + ":"  
         + (currentdate.getMinutes() < 10? "0":"") + currentdate.getMinutes() + ":" 
         + (currentdate.getSeconds() < 10? "0":"") + currentdate.getSeconds();
+        this.setState({
+          nickname: p.login.username,
+          pImage: p.picture.thumbnail,
+          timestamp: timestamp,
+          score: this.randomNumber(100,1)
+        });
+        this.submitStats();
         console.log(i, p.login.username, p.picture.thumbnail, this.randomNumber(100,1), timestamp);
-        this.submitStats(p.login.username, p.picture.thumbnail, this.randomNumber(100,1), timestamp);
       });      
     })
     .catch(error => {
@@ -51,7 +54,7 @@ class App extends Component{
   }
  
   render(){    
-    const list = this.state.players.map((p, i) => {
+    const list = this.state.stats.map((p, i) => {
       let currentdate = new Date();
       let timestamp = currentdate.getDate() + "-"
       + (currentdate.getMonth()+1)  + "-" 
@@ -63,7 +66,7 @@ class App extends Component{
     });
     return(
       <div>
-        <h1>Players:</h1>
+        <h1>stats:</h1>
         {list}
       </div>
     );
