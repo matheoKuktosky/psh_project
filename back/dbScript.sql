@@ -20,3 +20,4 @@ create table stats (
 );
 
 select * from players;
+select * from stats;

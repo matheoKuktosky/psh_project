@@ -5,6 +5,18 @@ const fetch = require('node-fetch');
 
 const api = express();
 
+// const db = mysql.createConnection({
+//     host: 'localhost',
+//     user: 'admin',
+//     password: 'admin',
+//     database: 'sql_server'
+// });
+
+
+// db.connect(err => {
+//     if(err) return err;
+// });
+
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'admin',
@@ -13,8 +25,14 @@ const db = mysql.createConnection({
 });
 
 db.connect(err => {
-    if(err) return err;
+    if(err) console.log(err);
 });
+
+/*const endConnection = () =>{
+    db.end(err => {
+        if(err) console.log(err);
+    });
+}*/
 
 api.use(cors());
 
@@ -23,12 +41,13 @@ const randomNumber = (max, min) => {
 }
 
 const createStats = async () =>{
-    try{
+    try{        
         fetch(`https://randomuser.me/api/?results=${randomNumber(10, 0)}`).then(response =>{
             if(response.ok) return response.json();
           })
           .then(data =>{
               const stats = data.results;
+              //startConnection();
               stats.map(async (p) =>{
                   let currentdate = new Date();
                   let timestamp = currentdate.getFullYear() + "-" 
@@ -37,16 +56,15 @@ const createStats = async () =>{
                   + (currentdate.getHours() < 10? "0":"") + currentdate.getHours() + ":"  
                   + (currentdate.getMinutes() < 10? "0":"") + currentdate.getMinutes() + ":" 
                   + (currentdate.getSeconds() < 10? "0":"") + currentdate.getSeconds();
-                  let username = p.login.username;
+                  let username = p.login.username;                
                   let playerId = await getPlayerId(username);
                   let exists =  playerId != 0;
                   console.log(exists);
-                  if(!exists) insertPlayer(username, p.picture.thumbnail);
+                  if(!exists) await insertPlayer(username, p.picture.thumbnail);
                   playerId = await getPlayerId(username);
-                  insertStats(playerId, timestamp, randomNumber(100, 1));
+                  await insertStats(playerId, timestamp, randomNumber(100, 1));                  
                   console.log("GOOD");
-              });
-                    
+              });    
           })
           .catch(error => {
             console.log(error);
@@ -55,7 +73,6 @@ const createStats = async () =>{
     catch{
         createStats();
     }    
-    
   }
 
   const getPlayerId = async (nickname)  =>{      
@@ -78,7 +95,7 @@ const createStats = async () =>{
       });
   }
 
-  const insertPlayer = (nickname, pImage) =>{
+  const insertPlayer = async (nickname, pImage) =>{
     const INSERT_PLAYER_QUERY = `INSERT INTO players (nickname, p_image) VALUES ("${nickname}", "${pImage}")`;
     db.query(INSERT_PLAYER_QUERY, (err, results) => {
         if(err) console.log(err);
@@ -86,7 +103,7 @@ const createStats = async () =>{
     });
   }
 
-  const insertStats = (playerId, timestamp, score) =>{
+  const insertStats = async (playerId, timestamp, score) =>{
     const INSERT_STATS_QUERY = `INSERT INTO stats (player_id, creation_date, score) VALUES (${playerId}, "${timestamp}" , ${score})`;
     db.query(INSERT_STATS_QUERY, (err, results) => {
         if(err) console.log(err);
@@ -94,7 +111,10 @@ const createStats = async () =>{
     });
   }
 
-createStats();
+  api.get('/api/insertStats', (req, results)=>{
+      createStats();
+  })
+  //createStats();
 
 
 // api.get('/api/insert', (req, res) => {
