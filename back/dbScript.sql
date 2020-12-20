@@ -18,6 +18,9 @@ create table stats (
     score int NOT NULL,
     PRIMARY KEY (stat_id)    
 );
-
+SELECT players.nickname, players.p_image, stats.score, stats.creation_date 
+FROM players
+INNER JOIN stats ON players.player_id=stats.player_id
+ORDER BY stats.score DESC LIMIT 10;
 select * from players;
 select * from stats;
