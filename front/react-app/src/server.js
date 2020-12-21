@@ -4,7 +4,6 @@ const cors = require('cors');
 const fetch = require('node-fetch');
 const cron = require('node-cron');
 const json2csvParser = require('json2csv').Parser;
-const fs = require('fs');
 
 
 const SELECT_TOP10_QUERY = 
@@ -27,21 +26,6 @@ const db = mysql.createConnection({
 db.connect(err => {
     if(err) console.log(err);
 });
-
-
-/*let exportCSV = (req, res) => {
-    db.query(SELECT_TOP10_QUERY, (err, results, fields) => {
-        if(err) throw err;    
-        const jsonData = JSON.parse(JSON.stringify(results));
-        const json2csvP = new json2csvParser({header: true});
-        const csv = json2csvP.parse(jsonData);
-        res.send(csv);
-        fs.writeFile("report.csv", csv, (err) =>{
-            if(err) throw err;
-            console.log("CSV export done!");
-        });
-      });
-}*/
 
 api.use(cors());
 
@@ -72,10 +56,11 @@ const createStats = async () =>{
                   let username = p.login.username;                
                   let playerId = await getPlayerId(username);
                   let exists =  playerId != 0;
-                  if(!exists) await insertPlayer(username, p.picture.thumbnail);
-                  playerId = await getPlayerId(username);
-                  await insertStats(playerId, timestamp, randomNumber(100, 1));                  
-                  //console.log("GOOD");
+                  if(!exists)  {
+                      insertPlayer(username, p.picture.thumbnail);
+                      playerId = await getPlayerId(username);
+                    }                  
+                  insertStats(playerId, timestamp, randomNumber(100, 1));
               });    
           })
           .catch(error => {
@@ -107,24 +92,22 @@ const createStats = async () =>{
       });
   }
 
-  const insertPlayer = async (nickname, pImage) =>{
+  const insertPlayer =  (nickname, pImage) =>{
     const INSERT_PLAYER_QUERY = `INSERT INTO players (nickname, p_image) VALUES ("${nickname}", "${pImage}")`;
-    db.query(INSERT_PLAYER_QUERY, (err, results) => {
+    db.query(INSERT_PLAYER_QUERY, (err) => {
         if(err) console.log(err);
-        //else console.log("Inserted Player");
     });
   }
 
-  const insertStats = async (playerId, timestamp, score) =>{
+  const insertStats =  (playerId, timestamp, score) =>{
     const INSERT_STATS_QUERY = `INSERT INTO stats (player_id, creation_date, score) VALUES (${playerId}, "${timestamp}" , ${score})`;
-    db.query(INSERT_STATS_QUERY, (err, results) => {
+    db.query(INSERT_STATS_QUERY, (err) => {
         if(err) console.log(err);
-        //else console.log("Inserted Stat");
     });
   }
 
-  api.get('/api/exportCSV', async (req, res)=>{
-    db.query(SELECT_TOP10_QUERY, (err, results, fields) => {
+  api.get('/api/exportCSV', (req, res)=>{
+    db.query(SELECT_TOP10_QUERY, (err, results) => {
         if(err) throw err;    
         const jsonData = JSON.parse(JSON.stringify(results));
         const json2csvP = new json2csvParser({header: true});

@@ -10,11 +10,6 @@ class App extends Component{
       position: 1,
     };
     this.componentDidMount = this.componentDidMount.bind(this);
-    this.getTopTen = this.getTopTen.bind(this);
-    this.renderStat = this.renderStat.bind(this);
-    this.render = this.render.bind(this);
-    this.exportCSV = this.exportCSV.bind(this);
-    this._exportCSV = this._exportCSV.bind(this);
   }
   
 
@@ -76,7 +71,7 @@ class App extends Component{
           </table>         
           <div className="info">
             <p> LAST STATS INSERT TIME: {this.state.timeStamp}</p>
-            <button onClick={() => {this.exportCSV()}}>Export Report</button>
+            <button onClick={this.exportCSV}>Export Report</button>
           </div>           
         </main>        
       </div>

@@ -35,10 +35,13 @@ button {
   cursor: pointer;
   font-size: 15px;
   margin-bottom: 10px;
+  border-radius: 5px;
+  transition: 0.75s;
 }
 
 button:hover {
   background-color: RoyalBlue;
+  transition: 0.75s;
 }
 
 img {
